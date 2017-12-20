@@ -1,0 +1,42 @@
+#PBS -S /bin/bash
+#PBS -l walltime=72:00:00
+#PBS -l nodes=6:ppn=8
+#PBS -m e
+#PBS -j oe
+#PBS -o pbsNAMD.out
+#PBS -N namd_apo_1ii6_4
+#PBS -q wenjun
+#
+# Change to job submission directory
+#
+cd $PBS_O_WORKDIR
+#
+# load namd via module
+#
+. $MODULESHOME/init/bash
+module load namd/2.7b2-IB
+# module load namd/2.6b1
+#
+# Set number of processors to number requested from PBS
+#
+NP=`cat $PBS_NODEFILE | wc -l`
+echo "NAMDHOME = "$NAMDHOME
+#
+# construct namd nodes file from $PBS_NODEFILE
+#
+export CONV_RSH=ssh
+
+export NODELIST=tmp.$$
+echo "group main" > $NODELIST
+NODES=`cat $PBS_NODEFILE`
+for node in $NODES ; do
+   echo "host "$node >> $NODELIST
+done
+#
+# run apoa1 benchmark 
+#
+cd $PBS_O_WORKDIR
+#
+#charmrun $NAMDHOME/namd2 +p$NP ++nodelist $NODELIST kif-solvent-step1_2.namd >& kif-solvent-step1_2.log
+charmrun +p $NP ++remote-shell ssh ++nodelist $NODELIST $NAMDHOME/namd2 kif-solvent-step1_4.namd >& kif-solvent-step1_4.log
+\rm $NODELIST

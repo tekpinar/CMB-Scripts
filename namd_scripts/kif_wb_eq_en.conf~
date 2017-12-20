@@ -1,0 +1,109 @@
+#############################################################
+## JOB DESCRIPTION                                         ##
+#############################################################
+
+# Constant temperature molecular dynamics simulation  of 
+# a protein in a water Box
+
+
+#############################################################
+## ADJUSTABLE PARAMETERS                                   ##
+#############################################################
+
+structure          /home/tekpinar/namd/proteins/kif_mt_wb.psf
+coordinates        /home/tekpinar/namd/proteins/kif_mt_wb_min12.pdb
+
+set temperature    300
+set outputname     /home/tekpinar/namd/output/kif_mt_wb_energy
+
+firsttimestep      0
+
+
+#############################################################
+## SIMULATION PARAMETERS                                   ##
+#############################################################
+
+# Input
+paraTypeCharmm	    on
+parameters          /home/tekpinar/toppar/par_all22_prot.inp 
+parameters          /home/tekpinar/toppar/par_all27_na.prm
+parameters          /home/tekpinar/toppar/par_all27_lipid.prm
+temperature         $temperature
+
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.0
+switching           on
+switchdist          10.0
+pairlistdist        13.5
+
+
+# Integrator Parameters
+timestep            1.0  ;# 1fs/step
+nonbondedFreq       2
+fullElectFrequency  4  
+stepspercycle       20
+
+
+# Constant Temperature Control
+langevin            on    ;# do langevin dynamics
+langevinDamping     5     ;# damping coefficient (gamma) of 5/ps
+langevinTemp        $temperature
+langevinHydrogen    off    ;# don't couple langevin bath to hydrogens
+
+
+# Periodic Boundary Conditions
+cellBasisVector1    75.0    0.0    0.0
+cellBasisVector2     0.0  110.0    0.0
+cellBasisVector3     0.0    0.0  115.0
+cellOrigin          40.0   57.0  57.0
+
+wrapAll             on
+
+
+
+# PME (for full-system periodic electrostatics)
+PME                 yes
+PMEGridSizeX	84
+PMEGridSizeY	120
+PMEGridSizeZ	120
+
+
+
+# Constant Pressure Control 
+# It is recommended for periodic calculations
+useGroupPressure      yes ;# needed for rigidBonds
+useFlexibleCell       no
+useConstantArea       no
+
+langevinPiston        on
+langevinPistonTarget  1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod  100.0
+langevinPistonDecay   50.0
+langevinPistonTemp    $temperature
+
+
+# Output
+outputName          $outputname
+
+#restartfreq         500     ;# 500steps = every 0.5ps
+# Output is given every 0.5 ps
+dcdfreq             500;
+xstFreq             500
+outputEnergies      500
+outputPressure      500
+
+
+#############################################################
+## EXTRA PARAMETERS                                        ##
+#############################################################
+
+
+#############################################################
+## EXECUTION SCRIPT                                        ##
+#############################################################
+
+# Start MD
+run 50000 ;# 50 ps

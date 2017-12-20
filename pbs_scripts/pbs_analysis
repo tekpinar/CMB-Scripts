@@ -1,0 +1,45 @@
+#PBS -S /bin/bash
+#PBS -m e
+#PBS -l nodes=1:ppn=8:XEON
+#PBS -l walltime=72:00:00
+#PBS -M wjzheng@buffalo.edu
+#PBS -o test1.out
+#PBS -j oe
+#PBS -N analysis
+#PBS
+#
+# charmm input file
+#
+INFILE=run_md_wat.inp
+OUTFILE=out1
+#
+# generic setup and checks
+#
+# ulimit coredumpsize 0
+# ulimit
+echo "check module commands:"
+source $MODULESHOME/init/bash
+limit coredumpsize 0
+which module
+module load charmm/c35b1r1
+#
+# charmm binary
+#
+echo "Using CHARMMEXE = "$CHARMMEXE
+# NPROCS=`cat $PBS_NODEFILE | wc -l`
+#
+# goto dir from which job was submitted and run
+#  (allows standard output to go to PBS output file)
+#
+cd $PBS_O_WORKDIR
+
+# module load mpich/intel-10.1/ch_p4/1.2.7p1
+
+date
+mpiexec $CHARMMEXE < $INFILE > $OUTFILE 2>&1 seedi:1 prot:1vom_init_wat mode:1
+#mpiexec $CHARMMEXE < $INFILE > $OUTFILE 2>&1 seedi:10 prot:1vom_holm2004_wat mode:0
+date
+
+#
+# remove scratch directory
+# \rm -r $PBSTMPDIR

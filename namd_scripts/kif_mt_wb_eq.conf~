@@ -1,0 +1,110 @@
+#############################################################
+## JOB DESCRIPTION                                         ##
+#############################################################
+
+# Minimization and equilibration of 
+# kif_mt protein  in a water Box
+
+
+#############################################################
+## ADJUSTABLE PARAMETERS                                   ##
+#############################################################
+
+structure          /home/tekpinar/namd/proteins/kif_mt_wb.psf
+coordinates        /home/tekpinar/namd/proteins/kif_mt_wb.pdb
+set temperature    300
+set outputname     /home/tekpinar/namd/output/kif__mt_wb_eq
+
+firsttimestep      0
+
+
+#############################################################
+## SIMULATION PARAMETERS                                   ##
+#############################################################
+
+# Input
+paraTypeCharmm	    on
+parameters          /home/tekpinar/toppar/par_all22_prot.inp 
+parameters          /home/tekpinar/toppar/par_all27_na.prm
+parameters          /home/tekpinar/toppar/par_all27_lipit.prm 
+temperature         $temperature
+
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.0
+switching           on
+switchdist          10.0
+pairlistdist        13.5
+
+
+# Integrator Parameters
+timestep            2.0  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  2  
+stepspercycle       10
+
+
+# Constant Temperature Control
+langevin            on    ;# do langevin dynamics
+langevinDamping     5     ;# damping coefficient (gamma) of 5/ps
+langevinTemp        $temperature
+langevinHydrogen    off    ;# don't couple langevin bath to hydrogens
+
+
+# Periodic Boundary Conditions
+cellBasisVector1    75.0    0.0    0.0
+cellBasisVector2     0.0  110.0    0.0
+cellBasisVector3     0.0    0.0  115.0
+cellOrigin          40.0   57.0  57.0
+
+wrapAll             on
+
+
+# PME (for full-system periodic electrostatics)
+PME                 yes
+PMEGridSizeX	84
+PMEGridSizeY	120
+PMEGridSizeZ	120
+
+
+# Constant Pressure Control (variable volume)
+useGroupPressure      yes ;# needed for rigidBonds
+useFlexibleCell       no
+useConstantArea       no
+
+langevinPiston        on
+langevinPistonTarget  1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod  100.0
+langevinPistonDecay   50.0
+langevinPistonTemp    $temperature
+
+
+# Output
+outputName          $outputname
+
+#restartfreq         500     ;# 500steps = every 1ps
+dcdfreq             200
+xstFreq             200
+outputEnergies      200
+outputPressure      200
+
+
+#############################################################
+## EXTRA PARAMETERS                                        ##
+#############################################################
+
+
+#############################################################
+## EXECUTION SCRIPT                                        ##
+#############################################################
+
+# Minimization
+minimize            100
+reinitvels          $temperature
+
+run 2500 ;# 5ps
+
+

@@ -1,0 +1,36 @@
+#!/bin/perl -w
+use strict;
+
+die "Wrong number of parameters from command line \n
+USAGE: perl changeFileExtension.pl newPrefix newExtension framesBegin framesEnd  splitATLineNo fileTOSplit\n" unless $#ARGV == 6;
+
+my $newPrefix=$ARGV[0];
+my $newExtension=$ARGV[1];
+my $framesBegin=$ARGV[2];
+my $framesEnd=$ARGV[3];
+my $splitATLineNo=$ARGV[4]; 
+my $fileTOSplit=$ARGV[5];;
+
+#Purpose: Change file names produced by split
+#Author : Mustafa Tekpinar - tekpinar@buffalo.edu
+#Date   : 13 October 2011
+my $fileBase;
+
+system("split -d -l $splitATLineNo #fileTOSplit");
+
+for(my $i=$framesBegin; $i<$framesEnd; $i++)
+{
+    if($i<10)
+    {
+	$fileBase="x0"."$i";    
+    }
+    else
+    {
+	$fileBase="x"."$i";    
+    }
+
+    my $newFileName="$newPrefix"."$i".".$newExtension";
+
+    print "$newFileName\n";
+    system("mv $fileBase $newFileName");
+}

@@ -1,0 +1,55 @@
+#!/bin/bash
+#PBS -S /bin/bash
+#PBS -m e
+#PBS -q wenjun
+#PBS -l nodes=1:ppn=8
+#PBS -l walltime=72:00:00
+##PBS -M tekpinar@buffalo.edu
+#PBS -o 4ake_2_1ake_pbs.out
+#PBS -j oe
+#PBS -N 4ake_2_1ake
+#PBS
+FACTOR=10
+PROTEIN1=4ake
+PROTEIN2=1ake
+#WORKDIR=/san/scratch/tekpinar/
+WORKDIR=/san/scratch/tekpinar/saxs/result_${PROTEIN1}
+OUTFILE=${WORKDIR}/test_${PROTEIN1}_2_${PROTEIN2}.out
+#
+#
+# generic setup and checks
+#
+# ulimit coredumpsize 0
+# ulimit 
+# echo "check module commands:"
+# source /init/bash
+# limit coredumpsize 0
+# which module
+# module load 
+#
+# charmm binary
+#
+echo "Using pairDistro"
+# NPROCS=`cat $PBS_NODEFILE | wc -l`
+#
+# goto dir from which job was submitted and run
+#  (allows standard output to go to PBS output file)
+#
+cd ${WORKDIR} 
+##$PBS_O_WORKDIR
+
+# module load
+
+date
+./pairDistroInt ${PROTEIN1}.pdb ${PROTEIN2}.pdb >$OUTFILE
+date
+echo "Job finished successfully!"
+##mv path_${PROTEIN1}_${PROTEIN2}.pdb path${PROTEIN1}_${PROTEIN2}_${FACTOR}.pdb
+##mv E_p_${FACTOR}.txt E_p_${PROTEIN1}_${FACTOR}.txt
+##mv energy1_${FACTOR}.dat energy_${PROTEIN1}_${FACTOR}.dat
+##mv output_${FACTOR}.txt output_${PROTEIN1}_${FACTOR}.txt
+##date
+
+#
+# remove scratch directory
+# \rm -r $PBSTMPDIR

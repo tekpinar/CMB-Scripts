@@ -1,0 +1,45 @@
+#!/bin/bash
+#PBS -l nodes=1:XEON:ppn=8
+#    -l walltime=72:00:00
+##PBS -M tekpinar@buffalo.edu
+##PBS -m e
+##===========
+#PBS -o 1goj_charmm_serial_cpt_md_pbs.out
+#PBS -j oe
+#PBS -N 1goj_charmm_serial_cpt_md
+#PBS
+#
+# charmm input file
+#
+INFILE=$HOME/charmm/inputscripts/1goj_charmm_cpt_md.inp 
+OUTFILE=$HOME/charmm/output/1goj_charmm_cpt_md_serial.out
+##===============
+
+#
+# Initialize
+#
+
+cd $PBS_O_WORKDIR
+echo "working directory = "$PBS_O_WORKDIR
+
+export NN=`cat $PBS_NODEFILE | wc -l`
+echo "NN = "$NN
+
+.$MODULESHOME/init/bash
+module load charmm/c35b1r1-serial
+module list
+
+ulimit -s unlimited
+ulimit -c 0
+ulimit -a
+
+#
+# Executable
+#
+
+echo "Starting CHARMM using $NN processor"
+
+./$CHARMMEXE < $INFILE > $OUTFILE
+
+echo "All Done!"
+#

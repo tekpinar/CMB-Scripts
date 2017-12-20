@@ -1,0 +1,28 @@
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum102 at Tue Nov 23 22:59:48 EST 2010
+ 'vmd/v1.8.6' load complete.
+Using pairDistro
+Tue Nov 23 22:59:51 EST 2010
+Wed Nov 24 01:12:14 EST 2010
+Job finished successfully!
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum102 at Wed Nov 24 01:12:14 EST 2010
+    for 4 processes.
+Cleaning up processes on node quantum102 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum102: /scratch/22757.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum102
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS EPILOGUE##############################

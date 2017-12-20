@@ -1,0 +1,164 @@
+#!/usr/bin/python -u
+###########################FUNCTIONS#######################################
+def getConfig (configFile):
+  '''
+  Read configuration file.'''
+
+  config = {'q_min': 0.01,
+            'q_incr': 0.01,
+            'q_max': 2.5,
+            'n_sphere_points': 1500,
+            'prm_file': '',
+            'pdb_file': '',
+            'psf_file': '',
+            'work_directory': '',
+            'temperature': 277,
+            'shell_thickness': 7,
+            'n_min_steps': 100,
+            'n_pre-equilibration_steps': 5000,
+            'n_production_run_steps': 50000,
+            'n_steps_bet_snapshots': 500,
+            'n_processors': 1}
+
+  fp = open (configFile, 'r');
+  lines = fp.readlines();
+  fp.close()
+
+  for line in lines:
+    line = line.strip();
+    if not line or line[0] == '#':  continue;
+    (key, value) = line.split ('=', 1);
+    key = key.strip();
+    value = value.strip(); 
+
+    if not key in config:
+      print 'Unknown input field: "%s" in %s\n' % (key, configFile);
+      sys.exit(0);
+
+    if key in ['q_min', 'q_incr', 'q_max', 'temperature', 'shell_thickness']:
+      config[key] = float (value);
+    elif key in ['n_sphere_points', 
+                 'n_min_steps', 'n_pre-equilibration_steps', 
+                 'n_production_run_steps', 'n_steps_bet_snapshots',
+                 'n_processors']:
+      config[key] = int (value);
+    elif key in ['prm_file', 'pdb_file', 'psf_file', 'work_directory']:
+      config[key] = os.path.abspath (os.path.expanduser (value));
+    else:
+      config[key] = value;
+
+  return config;
+###-------------------------------------------------------------------------
+def cutProteinWaterShell (thickness, psfFile, dcdFile):
+  '''
+  Cut protein (fixed) and water shells from trajectory.
+  Write pdb files in current directory.'''
+
+  vmdScript = '''
+mol new %s
+mol addfile %s waitfor all
+set nf [molinfo top get numframes]
+set D %s
+for { set i 1 } { $i <= $nf } { incr i } {
+  set fr [expr $i - 1]
+  set all [atomselect top "all" frame $fr]
+  set all_mm [measure minmax $all]
+  set sel [atomselect top "(same residue as (name OH2 and within $D of (not water and not ions))) or (not water and not ions)" frame $fr]
+  set sel_mm [measure minmax $sel]
+  puts Shell$i:
+  puts [vecsub [lindex $sel_mm 0] [lindex $all_mm 0]]
+  puts [vecsub [lindex $all_mm 1] [lindex $sel_mm 1]]
+  $sel writepdb shell$i.pdb
+}
+set sel [atomselect top "not water" frame 0]
+$sel writepdb protein.pdb
+quit
+''' % (psfFile, dcdFile, thickness)
+
+  vmdFile = open ('shell.vmd', 'w')
+  vmdFile.write (vmdScript)
+  vmdFile.close()
+  os.system ('vmd -dispdev text -e shell.vmd 1> vmd.log 2> vmd.err')
+###-------------------------------------------------------------------------
+def cutWaterBlob (thickness, psfFile, dcdFile, proteinPDBfile):
+  '''
+  Cut water blobs from trajectory.
+  Write pdb files in current directory.'''
+
+  vmdScript = '''
+mol new %s
+mol addfile %s waitfor all
+set nf [molinfo top get numframes]
+set D %s
+for { set i 1 } { $i <= $nf } { incr i } {
+  set fr [expr $i - 1]
+  set sel [atomselect 0 "water" frame $fr]
+  $sel writepdb tmp_w.pdb
+  eval "cat %s tmp_w.pdb | grep ATOM > tmp_pw.pdb"
+  set tmp_mol [mol new tmp_pw.pdb]
+  eval "rm tmp_pw.pdb tmp_w.pdb"
+  set all [atomselect $tmp_mol "all"]
+  set all_mm [measure minmax $all]
+  set sel [atomselect $tmp_mol "same residue as (name OH2 and within $D of (not water))"]
+  set sel_mm [measure minmax $sel]
+  puts Blob$i: 
+  puts [vecsub [lindex $sel_mm 0] [lindex $all_mm 0]]
+  puts [vecsub [lindex $all_mm 1] [lindex $sel_mm 1]]
+  $sel writepdb blob$i.pdb
+  mol delete $tmp_mol
+}
+quit
+''' % (psfFile, dcdFile, thickness, proteinPDBfile)
+
+  vmdFile = open ('blob.vmd', 'w')
+  vmdFile.write (vmdScript)
+  vmdFile.close()
+  os.system ('vmd -dispdev text -e blob.vmd 1> vmd.log 2> vmd.err')
+###-------------------------------------------------------------------------
+###########################END OF FUNCTIONS################################
+###import pre_post_process, sys, os, os.path, numpy, glob, time
+import sys, os, os.path, glob
+
+if sys.argv[1] in ['-h', '--help']:
+  print 'Usage: runxs config_file';
+  sys.exit(0);
+
+### read configuration file
+config = getConfig (sys.argv[1]);
+
+### Top directory
+workDir = config['work_directory'];
+os.chdir (workDir);
+
+##Protein+Water directory and data paths
+workDir = '%s/MD_protein_in_water' % config['work_directory'];
+buildDir = '%s/build' % workDir;
+protwat_psf = '%s/ionized.psf' % buildDir;
+prodDir = '%s/prod' % workDir;
+protwat_dcd = '%s/equil.dcd' % prodDir;
+
+##Just water directory and data paths
+workDir = '%s/MD_water' % config['work_directory'];
+buildDir = '%s/build' % workDir;
+water_psf = '%s/waterbox.psf' % buildDir;
+prodDir = '%s/prod' % workDir;
+water_dcd = '%s/equil.dcd' % prodDir;
+
+##Now, lets produce shells of 'protein+water'. 
+xs_dir = '%s/XS' % config['work_directory'];
+os.mkdir (xs_dir);
+workDir = '%s/protein_water_shell' % xs_dir;
+os.mkdir (workDir);
+os.chdir (workDir);
+
+cutProteinWaterShell (config['shell_thickness'], protwat_psf, protwat_dcd);
+protein_pdb = '%s/protein.pdb' % workDir;
+
+##Now, lets produce shells of 'just water'. 
+workDir = '%s/water_blob' % xs_dir;
+os.mkdir (workDir);
+os.chdir (workDir);
+
+cutWaterBlob (config['shell_thickness'], water_psf, water_dcd, protein_pdb);
+
+print 'Post processing finished!'

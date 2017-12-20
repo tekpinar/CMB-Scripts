@@ -1,0 +1,7 @@
+#!/usr/bin/perl -w 
+use strict;
+#25-104
+for(my $i=25; $i<105; $i++)
+{
+    print $i."\n";
+}

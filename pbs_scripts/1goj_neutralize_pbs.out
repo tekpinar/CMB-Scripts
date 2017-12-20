@@ -1,0 +1,20 @@
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum1 at Tue Feb 9 15:12:45 EST 2010
+PBSTMPDIR is /scratch/8311.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+check module commands:
+/var/spool/pbs/mom_priv/jobs/8311.quantum.ccr.buffalo.edu.SC: line 23: limit: command not found
+which: no module in (/util/vmd/v1.8.6/bin:/util/Modules/3.1.6/bin:/usr/kerberos/bin:/opt/condor/bin:/opt/condor/sbin:/bin:/usr/bin:/usr/local/mx/bin:/usr/local/mx/sbin:/home/tekpinar/bin:/home/tekpinar/biomol_lab)
+ 'charmm/c35b1r1-serial' load complete.
+Using CHARMMEXE = /util/charmm/c35b1r1-serial/exec/gnu/charmm
+Tue Feb  9 15:12:47 EST 2010
+Tue Feb  9 20:06:28 EST 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum1 at Tue Feb 9 20:06:28 EST 2010
+    for 4 processes.
+Cleaning up processes on node quantum1 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum1: /scratch/8311.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum1
+#############################PBS EPILOGUE##############################

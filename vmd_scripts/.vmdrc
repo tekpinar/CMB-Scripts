@@ -1,0 +1,3 @@
+#lappend auto_path /util/vmd/v1.9/lib/vmd/plugins/noarch/tcl
+#lappend auto_path /util/vmd/la1.0 
+#lappend auto_path /util/vmd/orient

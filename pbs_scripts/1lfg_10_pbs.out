@@ -1,0 +1,29 @@
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum119 at Thu Aug 26 15:11:46 EDT 2010
+ 'vmd/v1.8.6' load complete.
+Using pairDistro
+Thu Aug 26 15:12:24 EDT 2010
+/var/spool/pbs/mom_priv/jobs/16944.quantum.ccr.buffalo.edu.SC: line 44:  9791 Killed                  ./pairDistro${FACTOR} ${PROTEIN1}.pdb ${PROTEIN2}.pdb > $OUTFILE
+Fri Aug 27 06:35:03 EDT 2010
+Fri Aug 27 06:35:05 EDT 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum119 at Fri Aug 27 06:35:05 EDT 2010
+    for 8 processes.
+Cleaning up processes on node quantum119 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum119: /scratch/16944.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum119
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS EPILOGUE##############################

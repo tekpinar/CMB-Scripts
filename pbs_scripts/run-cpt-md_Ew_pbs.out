@@ -1,0 +1,42 @@
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum100 at Mon Jan 25 13:43:38 EST 2010
+PBSTMPDIR is /scratch/7749.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+/var/spool/pbs/mom_priv/jobs/7749.quantum.ccr.buffalo.edu.SC: line 19: ulimit: coredumpsize: invalid number
+check module commands:
+which: no module in (/util/vmd/v1.8.6/bin:/util/Modules/3.1.6/bin:/usr/kerberos/bin:/opt/condor/bin:/opt/condor/sbin:/bin:/usr/bin:/usr/local/gm/bin:/usr/local/gm/sbin:/home/tekpinar/bin:/home/tekpinar/biomol_lab)
+ 'vmd/v1.8.6' load complete.
+ 'charmm/c32b2' load complete.
+Using CHARMMEXE = /util/charmm/c32b2/exec/gnu/charmm
+Mon Jan 25 13:43:41 EST 2010
+forrtl: Illegal seek
+forrtl: severe (20): REWIND error, unit 5, file stdin
+Image              PC        Routine            Line        Source             
+charmm             086D5F58  Unknown               Unknown  Unknown
+charmm             086D46F1  Unknown               Unknown  Unknown
+charmm             086A345F  Unknown               Unknown  Unknown
+charmm             086721EA  Unknown               Unknown  Unknown
+charmm             0868512E  Unknown               Unknown  Unknown
+charmm             08054C7F  Unknown               Unknown  Unknown
+charmm             0804BAF2  Unknown               Unknown  Unknown
+charmm             0804AE1A  Unknown               Unknown  Unknown
+libc.so.6          0083BDEC  Unknown               Unknown  Unknown
+charmm             0804AD51  Unknown               Unknown  Unknown
+    p4_error: latest msg from perror: Bad file descriptor
+mpiexec: Warning: task 0 exited with status 20.
+mpiexec: Warning: tasks 1,4-15 exited with status 1.
+Mon Jan 25 13:44:13 EST 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum100 at Mon Jan 25 13:44:13 EST 2010
+    for 16 processes.
+Cleaning up processes on node quantum100 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum100: /scratch/7749.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum100
+Cleaning up processes on node quantum110 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum110: /scratch/7749.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum110
+#############################PBS EPILOGUE##############################

@@ -1,0 +1,186 @@
+* Neutralize system
+*
+
+!Set file parameters
+!====================
+set prot    1goj_mod_vac_rmwc_smin
+set protDir $HOME/ortho_1goj/proteins
+set outDir  $HOME/ortho_1goj/output
+
+! Read topology and parameter files
+open read card unit 10 name $HOME/toppar/top_all27_prot_na.rtf
+read  rtf card unit 10
+close unit 10
+
+open read card unit 20 name $HOME/toppar/par_all27_prot_na_atp.prm
+read para card unit 20
+close unit 20
+
+! Read PSF and Coordinates
+open read unit 10 card name @protDir/@prot.psf
+read psf  unit 10 card
+
+rewind unit 10
+
+open read unit 10 card name @protDir/@prot.crd
+read coor unit 10 card
+close unit 10
+!===================
+coor stat sele all end
+
+calc XSIZ = INT(  ?XMAX - ?XMIN )         !Just to make sure the protein is properly burried into water
+calc YSIZ = INT(  ?YMAX - ?YMIN )
+calc ZSIZ = INT(  ?ZMAX - ?ZMIN )
+
+! Determine what type of ions being used
+set nneg CLA                     ! set segid of neg. ion
+set negion CL                    ! set atom type of neg. ion
+set npos POT                     ! set segid of pos. ion
+set posion POT                   ! set atom type of pos. ion
+
+! Setup coor volume scalar arrays
+scalar radi store 1
+scalar wmain set 0.5
+scalar wmain store 2
+
+! determine the net charge on the system
+scalar charge stat sele all end
+set chrg = ?stot
+
+! Compute volume of entire box
+calc volspace ?NATO * 160
+coor volume space @volspace select all end
+show ?VOLUME
+show ?FREEVOL
+calc tvol ?VOLUME + ?FREEVOL
+
+! Compute volume of just the protein
+define tmp select .not. segid WAT end
+show ?NSEL
+calc volspace ?NSEL * 160
+coor volume space @volspace select .not. segid WAT end
+show ?VOLUME
+show ?FREEVOL
+calc protvol ?VOLUME + ?FREEVOL
+
+! Compute just the volume of the water
+calc wvol @tvol - @protvol
+
+! Compute how many K+/Cl- are needed for 0.15M concentration
+set concentration 0.15
+calc volconv 1 * 0.000000000000000000000001
+calc wvoll ( ( @wvol * @volconv ) / 1000 )
+calc avog 1 * 602213670000000000000000
+
+FORMat (I5)
+if @chrg gt 0 then
+   calc totions ( @wvoll * @avog * @concentration )
+   calc nions ( @wvoll * @avog * @concentration ) - @chrg
+else
+   calc totions ( @wvoll * @avog * @concentration )
+   calc nions ( @wvoll * @avog * @concentration ) + @chrg
+endif
+
+! Make sure that an even number of charges are added
+calc tmpb int(@nions / 2) * 2
+calc tmpc @nions - @tmpb
+if @tmpc eq 1 then
+   if @chrg .gt. 0 then
+      calc nions @nions + 1
+   else
+      calc nions @nions - 1
+   endif
+endif
+
+! Setup number of charges
+if @chrg gt 0 then
+   calc ineg ( @nions / 2 ) + @chrg        ! no. negative ions (i.e. chlorides)
+   calc ipos ( @nions / 2 )                ! no. positive ions (i.e. potassiums)
+else
+   calc ineg ( @nions / 2 )                ! no. negative ions (i.e. chlorides)
+   calc ipos ( @nions / 2 ) - @chrg        ! no. positive ions (i.e. potassiums)
+endif
+
+format                                    ! reset formating
+set mnd 5.5                               ! minimum distance to solute, other ions
+set sol .not. segid WAT                  ! atoms selection for solvent
+set emin 1E20                             ! initial min energy value
+set ncfg 1                                ! initialize loop counter
+set last 3                                ! no. of passes thru the loop
+random uniform iseed 314159               ! change iseed to sample diff states
+
+! BEGINNING OF MAIN MONTE-CARLO LOOP
+label placion
+time now
+
+open unit 10 write card name loop-1goj-@ncfg.log
+outu 10
+! LOG FILE FOR PASS @ncfg
+
+! re-read the initial PSF and CRD at the beginning of the main loop
+read psf  card name @protDir/@prot.psf
+read coor card name @protDir/@prot.crd
+
+! RANDOM WATER REPLACEMENT
+set IONTYP = POT
+stream $HOME/ortho_1goj/inputscripts/addions.str
+
+! ASSUMES WATER IS SEGID BWAT; RENUMBER THE WATER MOLECULES
+join wat renum
+
+! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
+! WE USE THE SAME PARAMS AS IN SOLVATION
+!===========
+! setup Periodic Boundary Conditions
+! Here we have to use the crystal facility
+! Variables XSIZ,YSIZ, and ZSIZ have already been defined
+crystal define orthorombic @XSIZ @YSIZ @ZSIZ 90.0 90.0 90.0
+crystal build cutoff 14.0
+!===========
+
+! SETUP NONBOND, this time we will be using electrostatics with PME, since
+! we've set up a crystal structure.
+nbond inbfrq -1 imgfrq -1 atom vatom cdie eps 1.0 - 
+      elec ewald pmew fftx 108 ffty 72  fftz 72  kappa .34 spline order 6 -
+      vdw vswitch cutnb 16.0 cutim 16.0 ctofnb 12. ctonnb 10. wmin 1.0 
+
+! BRIEF MIN OF IONS INSERTED INTO SOLVATED MODEL
+mini sd nstep 10 nprint 1
+
+! add shake for ABNR step
+shake bonh param sele all end
+
+mini abnr nstep 25 nprint 5
+
+! KEY LOGICAL TEST; CONFIGS WITH HIGHER ENERGY REJECTED
+if emin .lt. ?ENER goto test
+
+! WRITE THE LATEST MINIMUM ENERGY RESULT; CONFIG ACCEPTED
+write psf card name @protDir/@prot_ntrl.psf
+* 1goj in neutralized solvent
+*
+
+! DO AN UPDATE AND WRITE THE COOR FILE
+update
+
+ioformat extended
+
+write coor card name @protDir/@prot_ntrl.crd
+* Neutralized structure.
+*
+
+! UPDATE MINIMUM ENERGY
+set emin ?ENER
+
+! TEST FOR EXIT, AND SETUP FOR NEXT PASS; REVERT TO STDOUT, CLOSE LOG
+label test
+crystal free
+shake off
+incr ncfg by 1
+time diff
+outu 6
+close unit 10
+if ncfg le @LAST goto placion
+
+stop
+

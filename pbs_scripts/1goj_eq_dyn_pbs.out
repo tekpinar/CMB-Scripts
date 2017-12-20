@@ -1,0 +1,33 @@
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum6 at Sat Feb 20 21:28:17 EST 2010
+PBSTMPDIR is /scratch/9409.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+check module commands:
+Module has not been loaded
+Module has been loaded
+Sat Feb 20 21:28:20 EST 2010
+Sun Feb 21 21:38:29 EST 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum6 at Sun Feb 21 21:38:29 EST 2010
+    for 16 processes.
+Cleaning up processes on node quantum6 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum6: /scratch/9409.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum6
+Cleaning up processes on node quantum7 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum7: /scratch/9409.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum7
+Cleaning up processes on node quantum8 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum8: /scratch/9409.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum8
+Cleaning up processes on node quantum9 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum9: /scratch/9409.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum9
+#############################PBS EPILOGUE##############################

@@ -1,0 +1,88 @@
+*FILENAME: 1goj_solv_min.inp
+*PURPOSE: Solve the protein  in a water box and minimize it
+*AUTHOR:  Mustafa Tekpinar(Modified from Lennart Nilsson, Karolinska Institutet (October 8, 2003)
+*
+!Set file and folder parameters
+!================================
+set prot    1goj_mod_vac_rmwc
+set protDir $HOME/ortho_1goj/proteins
+set outDir  $HOME/ortho_1goj/output
+!================================
+! Read topology and parameter files
+open read card unit 10 name $HOME/toppar/top_all27_prot_na.rtf
+read rtf card unit 10
+close unit 10
+
+open read card unit 20 name $HOME/toppar/par_all27_prot_na_atp.prm
+read para card unit 20
+close unit 20
+
+! Read PSF and Coordinates
+open read unit 10 card name @protDir/@prot_vmin.psf
+read psf  unit 10 card
+
+rewind unit 10
+
+open read unit 10 card name @protDir/@prot_vmin.crd
+read coor unit 10 card
+close unit 10
+!================================
+
+! Find out where protein is and put it with center at origin
+coor stat sele all end 
+! Orient molecule with moments of inertia along x,y,z-axes
+! everything will be translated/rotated, but the protein segment determines by how much
+coor orie sele all end 
+coor stat sele all end
+! Add water; here no ions are added, this will be done after solvation
+! Box size could be autmatically determined here by adding say 10 Angstrom on each side to the 
+! dimensions of the protein, we  also make the sizes integer numbers (not necessary)
+calc XSIZ = INT( 2*?XMAX + 20)         !Just to make sure the protein is properly burried into water
+calc YSIZ = INT(   ?YMAX - ?YMIN + 20)
+calc ZSIZ = INT(   ?ZMAX - ?ZMIN + 20)
+
+! Let the crystal waters be as they are in segment XWAT
+define SOLUTE sele all end
+stream $HOME/ortho_1goj/inputscripts/solvent-box.str
+coor stat sele all end
+!==========================================================
+!This part has been copied from another script
+! setup Periodic Boundary Conditions
+! Here we have to use the crystal facility
+! Variables XSIZ,YSIZ, and ZSIZ have already been defined
+crystal define orthorombic @XSIZ @YSIZ @ZSIZ 90.0 90.0 90.0
+crystal build cutoff 14.0
+
+! also specify that water molecules should be recentered as molecules (residues) if they 
+! get out of primary box, but that the protein molecule is a whole segment
+image byresidue sele resn tip3 end  xcen 0.0 ycen 0.0 zcen 0.0
+image bysegment sele ( SEGID PROT .or. SEGID ADPS .or. SEGID MGAT) end  xcen 0.0 ycen 0.0 zcen 0.0
+
+!Copy coordinates to comparison set
+coor copy comp
+
+! we want to do a minimization to remove bad contacts. Therefore, we should
+! set up shake and the non-bond parameters.
+shake bonh param sele all end
+nbond inbfrq -1 elec fswitch vdw vswitch cutnb 16. ctofnb 12. ctonnb 10.
+
+mini sd   nstep 500 nprint 50 tolgrd 100.0
+mini abnr nstep 500 nprint 50
+
+!Check rms of CA atoms
+coor orient rms sele type CA  end
+
+ioform extended
+!Write final coordinates to files
+write psf card name @protDir/@prot_smin.psf
+* 1goj_mod coordinates plus waters minimized
+*
+
+write coor card name @protDir/@prot_smin.crd
+* 1goj_mod coordinates plus waters minimized
+*
+
+write coor pdb name @protDir/@prot_smin.pdb
+* 1goj_mod coordinates plus waters minimized
+*
+stop

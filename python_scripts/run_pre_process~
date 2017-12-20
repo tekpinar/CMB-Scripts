@@ -1,0 +1,468 @@
+#!/usr/bin/python -u
+
+####import pre_post_process, sys, os, os.path, numpy, glob, time
+import sys, os, os.path, glob, time
+
+
+###########################FUNCTIONS#######################################
+def print_time (t_begin, t_end):
+  print '%.1f min\n' % ((t_end - t_begin) / 60.0);
+###-----------------------------------------------------------------------
+def getConfig (configFile):
+  '''
+  Read configuration file.'''
+
+  config = {'q_min': 0.01,
+            'q_incr': 0.01,
+            'q_max': 2.5,
+            'n_sphere_points': 1500,
+            'prm_file': '',
+            'pdb_file': '',
+            'psf_file': '',
+            'work_directory': '',
+            'temperature': 277,
+            'shell_thickness': 7,
+            'n_min_steps': 100,
+            'n_pre-equilibration_steps': 5000,
+            'n_production_run_steps': 50000,
+            'n_steps_bet_snapshots': 500,
+            'n_processors': 1}
+
+  fp = open (configFile, 'r');
+  lines = fp.readlines();
+  fp.close()
+
+  for line in lines:
+    line = line.strip();
+    if not line or line[0] == '#':  continue;
+    (key, value) = line.split ('=', 1);
+    key = key.strip();
+    value = value.strip(); 
+
+    if not key in config:
+      print 'Unknown input field: "%s" in %s\n' % (key, configFile);
+      sys.exit(0);
+
+    if key in ['q_min', 'q_incr', 'q_max', 'temperature', 'shell_thickness']:
+      config[key] = float (value);
+    elif key in ['n_sphere_points', 
+                 'n_min_steps', 'n_pre-equilibration_steps', 
+                 'n_production_run_steps', 'n_steps_bet_snapshots',
+                 'n_processors']:
+      config[key] = int (value);
+    elif key in ['prm_file', 'pdb_file', 'psf_file', 'work_directory']:
+      config[key] = os.path.abspath (os.path.expanduser (value));
+    else:
+      config[key] = value;
+
+  return config;
+###-----------------------------------------------------------------------
+def build (pdbFile, psfFile):
+  '''
+  Prepare simulation box.'''
+
+  vmdScript = '''
+### align principal axes to xyz
+mol new %s
+mol addfile %s
+package require Orient
+namespace import Orient::orient
+set sel [atomselect top "all"]
+set I [draw principalaxes $sel]
+set A [orient $sel [lindex $I 2] {0 0 1}]
+$sel move $A
+set I [draw principalaxes $sel]
+set A [orient $sel [lindex $I 1] {0 1 0}]
+$sel move $A
+set I [draw principalaxes $sel]
+set mm [measure minmax $sel]
+set lower [lindex $mm 0]
+set upper [lindex $mm 1]
+set c1 [expr "([lindex $lower 0] + [lindex $upper 0])/2.0"]
+set c2 [expr "([lindex $lower 1] + [lindex $upper 1])/2.0"]
+set c3 [expr "([lindex $lower 2] + [lindex $upper 2])/2.0"]
+set c [expr "{$c1 $c2 $c3}"]
+$sel moveby [vecscale -1 $c]
+$sel writepdb aligned.pdb
+mol delete top
+
+### solvate
+package require solvate
+solvate %s aligned.pdb -t 12 -o solvated
+
+### ionize (In files I received, ionization was skipped! Added by MT, 25 January 2012)
+#package require autoionize 1.3 
+#autoionize -psf solvated.psf -pdb solvated.pdb -neutralize
+
+### set beta column
+#mol new ionized.pdb
+
+#Set all protein and ligands fixed. Water and ions are free to move!
+set sel [atomselect top "not water and not ions"]
+$sel set beta 1.0
+
+#Set backbone fixed
+# set sel [atomselect top "backbone"]
+# $sel set beta 1.0
+
+#Don't fix any atom!
+#set sel [atomselect top "all"]
+#$sel set beta 0.0
+
+set all [atomselect top "all"]
+$all writepdb solvated.pdb
+
+### box size
+set outfile [open boxinfo.txt w]
+puts $outfile "Center: [measure center $all]"
+set foo [measure minmax $all]
+set lower [lindex $foo 0]
+set upper [lindex $foo 1]
+puts $outfile "Size: [expr "[lindex $upper 0] - [lindex $lower 0]"] [expr "[lindex $upper 1] - [lindex $lower 1]"] [expr "[lindex $upper 2] - [lindex $lower 2]"]"
+
+mol delete top
+quit
+''' % (psfFile, pdbFile, psfFile)
+
+  vmdFile = 'build.vmd'
+  fp = open (vmdFile, 'w')
+  fp.write (vmdScript)
+  fp.close()
+  os.system ('vmd -dispdev text -e %s 1> vmd.log 2> vmd.err' % vmdFile)
+
+  # read box size
+  boxFile = 'boxinfo.txt';
+  fp = open (boxFile);
+  for line in fp:
+    words = line.split();
+    if words[0] == 'Size:' and len(words) == 4:
+      boxSize = [float(x) for x in words[1:4]];
+      return boxSize;
+
+  print 'Box size information not found in %s\n' % boxFile;
+  sys.exit(0);
+###-----------------------------------------------------------------------
+def minimize (pdbFile, psfFile, prmFile, boxSize, minSteps, n_proc):
+  '''
+  Energy-minimize.'''
+
+  namdConfig = '''
+set  T  277.0
+set  STEPSIZE  2.0
+set  MINSTEPS  %d
+set  ENERGYSTEP  100
+set  TRAJSTEP  1000
+
+### FORCE FIELD
+paraTypeCharmm  on
+parameters  %s
+exclude  scaled1-4
+1-4scaling  1.0
+
+### INPUT
+temperature  $T
+structure  %s
+coordinates  %s
+firsttimestep  0
+
+### OUTPUT
+binaryoutput  no
+outputName  min
+dcdfreq  $TRAJSTEP
+outputEnergies  $ENERGYSTEP
+
+### INTEGRATOR
+timestep  $STEPSIZE
+rigidBonds  none
+nonbondedFreq  1
+stepspercycle  10
+
+### PERIODIC BOUNDARY
+cellBasisVector1  %f  0.0  0.0
+cellBasisVector2  0.0  %f  0.0
+cellBasisVector3  0.0  0.0  %f
+cellOrigin  0.0  0.0  0.0
+wrapWater  on
+
+### LONG-RANGE FORCE
+cutoff  12.0
+switching  on
+switchdist  10.0
+pairlistdist  14.0
+
+### FIXED ATOMS (set PDB beta-column to 1)
+fixedAtoms  on
+fixedAtomsFile  %s
+fixedAtomsCol  B
+
+minimize  $MINSTEPS
+''' % (minSteps, prmFile, psfFile, pdbFile, 
+       boxSize[0], boxSize[1], boxSize[2], pdbFile);
+
+  namdFile = 'min.namd';
+  fp = open (namdFile, 'w');
+  fp.write (namdConfig);
+  fp.close();
+#  os.system ('cp $HOME/pbs/namd_xeon_IB_min.pbs .');
+#  os.system ('qsub namd_xeon_IB_min.pbs');
+###-----------------------------------------------------------------------
+def equilibrate (pdbFile, psfFile, prmFile, xscFile, runSteps, trajSteps, 
+                 n_proc):
+  '''
+  Equilibrate.'''
+
+  namdConfig = '''
+margin  2.0
+
+set  T  277.0
+set  STEPSIZE  2.0
+set  RUNSTEPS  %d
+set  ENERGYSTEP  500
+set  TRAJSTEP  %d
+
+### FORCE FIELD
+
+paraTypeCharmm  on
+parameters  %s
+exclude  scaled1-4
+1-4scaling  1.0
+
+### INPUT
+
+structure  %s
+coordinates  %s
+extendedSystem  %s
+
+temperature  $T
+
+firsttimestep  0
+
+### OUTPUT
+
+binaryoutput  no
+outputName  equil
+dcdfreq  $TRAJSTEP
+outputEnergies  $ENERGYSTEP
+
+### INTEGRATOR
+
+timestep  $STEPSIZE
+rigidBonds  all
+nonbondedFreq  1
+stepspercycle  10
+
+### PERIODIC BOUNDARY
+
+wrapWater  on
+
+### LONG-RANGE FORCE
+
+cutoff  12.0
+switching  on
+switchdist  10.0
+pairlistdist  14.0
+
+# PME 
+PME  yes
+PMEGridSpacing  1.0
+
+### THERMOSTAT
+
+# Langevin
+langevin  on
+langevinDamping  1.0
+langevinTemp  $T
+langevinHydrogen  on
+
+### BAROSTAT
+
+useGroupPressure  yes
+useFlexibleCell  no
+useConstantArea  no
+langevinPiston  on
+langevinPistonTarget  1.01325
+langevinPistonPeriod  200.0
+langevinPistonDecay  100.0
+langevinPistonTemp  $T
+
+### FIXED ATOMS (set PDB beta-column to 1)
+
+fixedAtoms  on
+fixedAtomsFile  %s
+fixedAtomsCol  B
+
+### EXECUTION SCRIPT
+ 
+run  $RUNSTEPS
+''' % (runSteps, trajSteps, prmFile, psfFile, pdbFile, xscFile, pdbFile);
+
+  namdFile = 'equil.namd';
+  fp = open (namdFile, 'w');
+  fp.write (namdConfig);
+  fp.close();
+#  os.system ('cp $HOME/pbs/namd_xeon_IB_equil.pbs .');
+#  os.system ('qsub namd_xeon_IB_equil.pbs');
+
+
+#  os.system ('charmrun namd2 ++local +p%d %s 1> namd.log 2> namd.err' % (n_proc, namdFile));
+#  os.system ('namd2 +p%d %s 1> namd.log 2> namd.err' % (n_proc, namdFile));
+###-----------------------------------------------------------------------
+def buildWater (boxSize):
+  '''
+  Prepare water box.'''
+
+  vmdScript = '''
+package require solvate
+solvate -minmax {{%s %s %s} {%s %s %s}} -o waterbox
+
+quit
+''' % ( - boxSize[0] / 2.0, - boxSize[1] / 2.0, - boxSize[2] / 2.0,
+          boxSize[0] / 2.0,   boxSize[1] / 2.0,   boxSize[2] / 2.0 );
+
+  vmdFile = 'build.vmd';
+  fp = open (vmdFile, 'w');
+  fp.write (vmdScript);
+  fp.close();
+  os.system ('vmd -dispdev text -e %s 1> vmd.log 2> vmd.err' % vmdFile);
+
+###########################END OF FUNCTIONS################################
+if sys.argv[1] in ['-h', '--help']:
+  print 'Usage: runxs config_file';
+  sys.exit(0);
+
+### read configuration file
+config = getConfig (sys.argv[1]);
+
+### make work directory
+workDir = config['work_directory'];
+os.mkdir (workDir);
+os.chdir (workDir);
+
+###
+### MD 1 - protein in water
+###
+
+workDir = '%s/MD_protein_in_water' % config['work_directory'];
+os.mkdir (workDir);
+
+### prepare simulation box
+print 'MD1: preaparing simulation box >>>',
+t_begin = time.time();
+buildDir = '%s/build' % workDir;
+os.mkdir (buildDir);  os.chdir (buildDir);
+boxSize = build (pdbFile = config['pdb_file'],
+                    psfFile = config['psf_file']);
+protwat_psf = '%s/solvated.psf' % buildDir;
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### energy-minimize
+print 'MD1: preparing energy minimization files and folders >>>',
+t_begin = time.time();
+minDir = '%s/min' % workDir;
+os.mkdir (minDir);  os.chdir (minDir);
+minimize (pdbFile = '%s/solvated.pdb' % buildDir, 
+             psfFile = protwat_psf, 
+             prmFile = config['prm_file'], 
+             boxSize = boxSize,
+             minSteps = config['n_min_steps'],
+             n_proc = config['n_processors']);
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### pre-equilibration
+print 'MD1: pre-equilibration files and folders >>>',
+t_begin = time.time();
+preDir = '%s/pre-equil' % workDir;
+os.mkdir (preDir);  os.chdir (preDir);
+equilibrate (pdbFile = '%s/min.coor' % minDir,
+                psfFile = protwat_psf,
+                prmFile = config['prm_file'],
+                xscFile = '%s/min.xsc' % minDir, 
+                runSteps = config['n_pre-equilibration_steps'],
+                trajSteps = config['n_steps_bet_snapshots'],
+                n_proc = config['n_processors']);
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### production run
+print 'MD1: production run files and folders >>>',
+t_begin = time.time();
+prodDir = '%s/prod' % workDir;
+os.mkdir (prodDir);  os.chdir (prodDir);
+equilibrate (pdbFile = '%s/equil.coor' % preDir,
+                psfFile = protwat_psf,
+                prmFile = config['prm_file'],
+                xscFile = '%s/equil.xsc' % preDir,
+                runSteps = config['n_production_run_steps'],
+                trajSteps = config['n_steps_bet_snapshots'],
+                n_proc = config['n_processors']);
+protwat_dcd = '%s/equil.dcd' % prodDir;
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### 
+### MD 2 - bulk water
+###
+
+workDir = '%s/MD_water' % config['work_directory'];
+os.mkdir (workDir);
+
+### prepare simulation box
+print 'MD2: preparing simulation box files and folders >>>',
+t_begin = time.time();
+buildDir = '%s/build' % workDir;
+os.mkdir (buildDir);  os.chdir (buildDir);
+buildWater (boxSize);
+water_psf = '%s/waterbox.psf' % buildDir;
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### energy-minimize
+print 'MD2: energy minimization files and folders >>>',
+t_begin = time.time();
+minDir = '%s/min' % workDir;
+os.mkdir (minDir);  os.chdir (minDir);
+minimize (pdbFile = '%s/waterbox.pdb' % buildDir,
+             psfFile = water_psf,
+             prmFile = config['prm_file'],
+             boxSize = boxSize,
+             minSteps = config['n_min_steps'],
+             n_proc = config['n_processors']);
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### pre-equilibration
+print 'MD2: pre-equilibration files and folders >>>',
+t_begin = time.time();
+preDir = '%s/pre-equil' % workDir;
+os.mkdir (preDir);  os.chdir (preDir);
+equilibrate (pdbFile = '%s/min.coor' % minDir,
+                psfFile = water_psf,
+                prmFile = config['prm_file'],
+                xscFile = '%s/min.xsc' % minDir,
+                runSteps = config['n_pre-equilibration_steps'],
+                trajSteps = config['n_steps_bet_snapshots'],
+                n_proc = config['n_processors']);
+t_end = time.time();
+print_time (t_begin, t_end);
+
+### production run
+print 'MD2: production run files and folders >>>',
+t_begin = time.time();
+prodDir = '%s/prod' % workDir;
+os.mkdir (prodDir);  os.chdir (prodDir);
+equilibrate (pdbFile = '%s/equil.coor' % preDir,
+                psfFile = water_psf,
+                prmFile = config['prm_file'],
+                xscFile = '%s/equil.xsc' % preDir,
+                runSteps = config['n_production_run_steps'],
+                trajSteps = config['n_steps_bet_snapshots'],
+                n_proc = config['n_processors']);
+water_dcd = '%s/equil.dcd' % prodDir;
+t_end = time.time();
+print_time (t_begin, t_end);
+
+#print 'result in %s/xs.out' % config['work_directory'];
+
+print 'Pre process program finished!'

@@ -1,0 +1,46 @@
+#PBS -S /bin/bash
+#PBS -m e
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=72:00:00
+##PBS -M tekpinar@buffalo.edu
+#PBS -o 2vl0_3ehz_pbs.out
+#PBS -j oe
+#PBS -N nr_test
+#PBS
+#
+# 
+#
+OUTFILE=/home/tekpinar/newtonRaphson/2vl0_3ehz.out
+#
+# generic setup and checks
+#
+# ulimit coredumpsize 0
+# ulimit 
+# echo "check module commands:"
+# source /init/bash
+# limit coredumpsize 0
+# which module
+# module load 
+#
+# charmm binary
+#
+echo "Using newtonRaphson"
+# NPROCS=`cat $PBS_NODEFILE | wc -l`
+#
+# goto dir from which job was submitted and run
+#  (allows standard output to go to PBS output file)
+#
+cd $PBS_O_WORKDIR
+
+# module load
+
+date
+##LD_LIBRARY_PATH=/usr/lib64
+##export $LD_LIBRARY_PATH
+./newtonRaphson.exe map1_all.pdb map2_all.pdb
+
+date
+
+#
+# remove scratch directory
+# \rm -r $PBSTMPDIR

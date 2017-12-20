@@ -1,0 +1,49 @@
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum109 at Wed Feb 10 14:41:40 EST 2010
+PBSTMPDIR is /scratch/8433.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+/var/spool/pbs/mom_priv/jobs/8433.quantum.ccr.buffalo.edu.SC: line 19: ulimit: coredumpsize: invalid number
+check module commands:
+which: no module in (/util/vmd/v1.8.6/bin:/util/Modules/3.1.6/bin:/usr/kerberos/bin:/opt/condor/bin:/opt/condor/sbin:/bin:/usr/bin:/usr/local/gm/bin:/usr/local/gm/sbin:/home/tekpinar/bin:/home/tekpinar/biomol_lab)
+ 'vmd/v1.8.6' load complete.
+ 'charmm/c32b2' load complete.
+Using CHARMMEXE = /util/charmm/c32b2/exec/gnu/charmm
+Wed Feb 10 14:41:42 EST 2010
+[10] MPI Abort by user Aborting program !
+[10] Aborting program!
+[26] MPI Abort by user Aborting program !
+[26] Aborting program!
+mpiexec: Warning: tasks 1-6,8-21,23,25-26,28-29 exited with status 1.
+Wed Feb 10 22:53:35 EST 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum109 at Wed Feb 10 22:53:35 EST 2010
+    for 32 processes.
+Cleaning up processes on node quantum109 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum109: /scratch/8433.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum109
+Cleaning up processes on node quantum110 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum110: /scratch/8433.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum110
+Cleaning up processes on node quantum111 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum111: /scratch/8433.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum111
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum112 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum112: /scratch/8433.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum112
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS EPILOGUE##############################

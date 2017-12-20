@@ -1,0 +1,36 @@
+Attempt to set configuration "PBSRunning=True" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum2 at Thu Feb 18 19:41:57 EST 2010
+PBSTMPDIR is /scratch/9091.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+check module commands:
+Module has not been loaded
+Module has been loaded
+Thu Feb 18 19:42:00 EST 2010
+Thu Feb 18 19:42:05 EST 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum2 at Thu Feb 18 19:42:05 EST 2010
+    for 16 processes.
+Cleaning up processes on node quantum2 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum2: /scratch/9091.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum2
+Attempt to set configuration "PBSRunning=False" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+Cleaning up processes on node quantum3 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum3: /scratch/9091.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum3
+Cleaning up processes on node quantum4 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum4: /scratch/9091.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum4
+Cleaning up processes on node quantum5 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum5: /scratch/9091.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum5
+Attempt to set configuration "PBSRunning=False" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+#############################PBS EPILOGUE##############################

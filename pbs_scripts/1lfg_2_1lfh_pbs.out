@@ -1,0 +1,17 @@
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum15 at Fri Nov 19 15:16:40 EST 2010
+PBSTMPDIR is /scratch/22173.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+Using pairDistro
+Fri Nov 19 15:16:43 EST 2010
+Sat Nov 20 10:31:03 EST 2010
+Job finished successfully!
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum15 at Sat Nov 20 10:31:04 EST 2010
+    for 4 processes.
+Cleaning up processes on node quantum15 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum15: /scratch/22173.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum15
+#############################PBS EPILOGUE##############################

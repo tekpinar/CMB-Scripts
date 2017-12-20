@@ -1,0 +1,34 @@
+#/usr/bin/python
+#Purpose  : To get pdb files from protein data bank and make a trajectory from them
+#Author   : Mustafa Tekpinar
+#Email    : tekpinar@buffalo.edu
+#Date     : December 17, 2013
+#Copyright: Mustafa Tekpinar -2013
+
+import sys
+import os
+
+def usage():
+    print "Usage:"
+    print "python getPdbsAndMakeExpTraj.py file1.pdb file2.pdb ..... fileN.pdb"
+    sys.exit(-1)
+
+if (len(sys.argv)==1):
+    usage()
+
+#Step 1-Get file names from arguments
+print "%d files will be downloaded into this folder" %(len(sys.argv)-1)
+
+#Step 2-Download files
+for i in range (1, (len(sys.argv))):
+    get_command="wget http://www.rcsb.org/pdb/files/"+sys.argv[i]
+    print "Running command: \n%s" %get_command  
+    os.system(get_command)
+
+#Step 3-Grep CA atoms and put everything into a pdb file 
+for i in range (1, (len(sys.argv))):
+    grep_command="grep ' CA ' "+sys.argv[i]+">>exp_traj.pdb"
+    print "Running command:\n %s" %grep_command  
+    os.system(grep_command)
+    os.system="echo TER >>exp_traj.pdb"
+    os.system="echo ENDMDL >>exp_traj.pdb"

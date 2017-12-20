@@ -1,0 +1,112 @@
+#!/bin/bash
+#Structure and Parameter files
+structure       ionized.psf
+coordinates     ionized.pdb
+temperature     0
+parameters      par_all27_prot_lipid_na.inp
+paraTypeCharmm  on
+
+#Output
+outputEnergies  500
+outputTiming    500
+outputPressure  500
+xstFreq         500
+dcdFreq         500
+restartfreq	50000
+restartsave	yes
+
+wrapAll         off
+wrapWater	on
+wrapNearest     on
+
+rigidBonds      all
+timestep        2
+nonBondedFreq   1
+fullElectFrequency 2
+stepsPerCycle   20
+
+switching       on
+switchDist      10.5
+cutoff          12
+pairlistdist    13.5
+
+cellBasisVector1	069.000	00.000	00.000  
+cellBasisVector2	00.000 	094.000	00.000
+cellBasisVector3	00.000	00.000	070.000
+cellOrigin	-1.45621 -4.63774 -0.0107608
+
+margin 5
+
+#Particle mesh ewold parameters
+Pme             on
+PmeGridsizeX    70
+PmeGridsizeY    100
+PmeGridsizeZ    80
+
+exclude         scaled1-4
+1-4scaling      1.0
+
+
+fixedAtoms              on
+fixedAtomsForces        on
+fixedAtomsFile          fix_backbone.pdb
+fixedAtomsCol           B
+
+constraints     on
+consRef         restrain_ca.pdb
+consKFile       restrain_ca.pdb
+consKCol        B
+
+langevin                on
+langevinDamping         10
+langevinTemp            310
+langevinHydrogen        no
+
+langevinPiston          on
+langevinPistonTarget    1.01325
+langevinPistonPeriod    200
+langevinPistonDecay     100
+langevinPistonTemp      310
+
+useGroupPressure        yes     # smaller fluctuations
+useFlexibleCell         no     # allow dimensions to fluctuate independently
+useConstantRatio        no     # fix shape in x-y plane
+
+binaryoutput    off
+outputname      prot_eq
+
+# run one step to get into scripting mode
+minimize 0
+
+# turn off until later
+langevinPiston  off
+
+# minimize nonbackbone atoms (backbone fixed)
+minimize 20000
+output min_fix
+
+# min all atoms (with Ca constrained)
+fixedAtoms      off
+minimize 20000
+output min_all
+
+#gradually heating
+for {set i 20} {$i <= 300} {incr i 20} {
+langevinTemp $i
+run 15000
+output heat_$i
+}
+
+# heat with CAs restrained
+set temperature 310
+run 150000
+output heat
+
+# equilibrate volume with CAs restrained
+langevinPiston  on
+run 150000
+output equil_ca
+
+# equilibrate volume without restraints
+constraintScaling       0
+run 500000

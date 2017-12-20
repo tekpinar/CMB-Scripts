@@ -1,0 +1,95 @@
+* Molecular Dynamics
+*
+
+prnlev 5 node 0
+
+
+!Set file parameters
+!====================
+set prot  1goj_mod_vac_rmwc_smin_ntrl_final
+set protDir $HOME/ortho_1goj/proteins
+set outDir  $HOME/ortho_1goj/output
+
+! Read topology and parameter files
+open read card unit 10 name $HOME/toppar/top_all27_prot_na.rtf
+read  rtf card unit 10
+close unit 10
+
+open read card unit 20 name $HOME/toppar/par_all27_prot_na_atp.prm
+read para card unit 20
+close unit 20
+
+! Read PSF and Coordinates
+open read unit 10 card name @protDir/1goj-heat.psf
+read psf  unit 10 card
+
+rewind unit 10
+
+open read unit 10 card name @protDir/1goj-heat.crd
+read coor unit 10 card
+close unit 10
+!================================
+
+! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
+! WE USE THE SAME PARAMS AS IN SOLVATION
+!Check coordinate statistics for crystal size and PME
+coor stat sele all end
+
+calc XSIZ = INT(  ?XMAX - ?XMIN )      
+calc YSIZ = INT(  ?YMAX - ?YMIN )
+calc ZSIZ = INT(  ?ZMAX - ?ZMIN )
+!--------------------------------
+crystal define orthorombic @XSIZ @YSIZ @ZSIZ 90.0 90.0 90.0
+crystal build cutoff 14.0
+!-------------------------------------------------------------------------
+
+! These segments are used by CHARMMing for water and ions in bulk solvent
+define bulks sele segid WAT .or. segid POT .or. segid CL end
+
+! Set up images -- center the protein by segment and the solvent by residue
+image byseg sele .not. resname tip3 .and. .not. bulks end
+image byres sele resname tip3 .or. bulks end
+
+! set up shake
+shake bonh param sele all end
+
+open unit 41 write card name @protDir/1goj-equil-1.res !restart file that will be written
+open unit 51 read card name  @protDir/1goj-heat.res !restart file that will be reading
+open unit 31 write file name @protDir/1goj-equil-1.dcd !trajectory file name
+
+! set up nonbond parameters -- same as for heating
+nbond inbfrq -1 imgfrq -1 atom vatom cdie eps 1.0 -
+      elec ewald pmew fftx 108 ffty 72  fftz 72  kappa .34 spline order 6 -
+      vdw vswitch cutnb 16.0 cutim 16.0 ctofnb 12. ctonnb 10. wmin 1.0
+
+! We're going to use the Langevin piston method, so we're going to need to
+! calculate masses for the pressure and temperature pistons (pmass & tmass)
+! calc pmass = total molecular mass / 50
+! calc tmass = pmass * 10
+scalar mass stat
+calc pmass = int ( ?stot  /  50.0 )
+calc tmass = @pmass * 10
+
+dyna leap cpt restart -                         ! restart the run from our heating restart, use CPT dynamics
+  timestep 0.001 nstep 200000 nprint 1000 -     ! do 100 picoseconds, 1 fs time steps, for now
+  iunrea 51 iunwri 41 iuncrd 31 nsavcc 1000 -   ! units for reading/writing restarts and coordinate trajectory
+  hoover reft 300.0 tmass @tmass -              ! hoover thermostat, constant temp - 310 K, tmass as above
+  pcons pint pref 1.0 pmass @pmass pgamma 0.0 - ! constant pressure, 1 atmosphere, use internal virial (pint), collision freq. 0
+  ihtfrq 0 ieqfrq 0 ntrfrq 500 -                ! temperature under Hoover's control, cancel rotation/translation every 10 steps
+  iasors 1 iasvel 1 iscvel 0 ichecw 0 -         ! since we're restarting and ihtfrq = ieqfrq = 0, these don't really matter
+  echeck 100.                                   ! check energy diff as before
+    
+
+ioform extended
+
+!Write coordinates after md
+write psf card name @protDir/1goj-equil.psf
+* 1goj after 200 ps equilibration run
+*
+
+write coor card name @protDir/1goj-equil.crd
+* coordinates after the 200 ps equilibration run
+*
+
+stop
+

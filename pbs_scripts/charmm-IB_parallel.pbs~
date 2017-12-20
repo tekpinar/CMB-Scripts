@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -l walltime=72:00:0
+#PBS -l nodes=1:ppn=4
+#PBS -M username@buffalo.edu
+#PBS -m e
+#PBS -N 1goj_run-cpt-md_Ew_mod
+#PBS -o 1goj_run-cpt-md_Ew_mod_pbs.out
+#PBS -j oe
+##PBS -q debug
+#
+# This version of Charmm runs on IB on the quantum cluster.
+# 
+# Notes:
+# You must have the .mpd.conf in your home directory.
+# This file should contain the following line:
+# secretword=<secretword>
+# where <secretword> is a string known only to yourself. It should not
+# be your normal Unix password. Make this file readable and writable
+# only by you.
+#
+#
+# charmm input file
+#
+INFILE=$HOME/charmm/inputscripts/1goj_run-cpt-md_Ew_mod.inp
+OUTFILE=$HOME/charmm/output/1goj_run-cpt-md_Ew_mod.out
+#
+cd $PBS_O_WORKDIR
+echo "working directory = "$PBS_O_WORKDIR
+export NN=`cat $PBS_NODEFILE | wc -l`
+echo "NN = "$NN
+. $MODULESHOME/init/bash
+module load charmm/c35b1r1-IB
+module list
+ulimit -s unlimited
+ulimit -c 0
+ulimit -a
+echo "Using CHARMMEXE = "$CHARMMEXE
+#
+sort -r $PBS_NODEFILE | uniq -c | awk '{ printf("%s:%s\n", $2, $1); }' > mpd.nodes
+export NNMPD=`cat mpd.nodes | wc -l`
+echo "NNMPD = "$NNMPD
+# Run Job
+which mpiexec
+date
+mpdboot -v -f mpd.nodes -n $NNMPD -r rsh
+mpdtrace
+mpiexec -machinefile $PBS_NODEFILE -n $NN $CHARMMEXE < $INFILE > $OUTFILE N=0
+mpdallexit
+date
+echo "All Done!"

@@ -1,0 +1,32 @@
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum147 at Tue Nov 9 16:09:49 EST 2010
+ 'vmd/v1.8.6' load complete.
+Using pairDistro
+Tue Nov  9 16:09:51 EST 2010
+ !!! Residue GLY  214 A has  1 instead of expected   0 sidechain atoms.
+     last sidechain atom name is  OXT
+     calculated solvent accessibility includes extra atoms !!!
+
+Inputcoordinates done         214
+Flagssbonds done
+Flagchirality done
+Flaghydrogenbonds done
+Flagbridge done
+Flagturn done
+*Accessible surface *NOT* calculated*
+Printout done
+Tue Nov  9 16:41:31 EST 2010
+Job finished successfully!
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum147 at Tue Nov 9 16:41:31 EST 2010
+    for 1 processes.
+Epilogue: No extra processes to kill. Just this node.
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS EPILOGUE##############################

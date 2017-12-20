@@ -1,0 +1,83 @@
+* Molecular Dynamics: Heating
+*
+
+! print out only on the first processor
+prnlev 5 node 0
+
+!Set file parameters
+!====================
+set prot  1goj_mod_vac_rmwc_smin_ntrl_final
+set protDir $HOME/rhdo_1goj/proteins
+set outDir  $HOME/rhdo_1goj/output
+
+! Read topology and parameter files
+open read card unit 10 name $HOME/toppar/top_all27_prot_na.rtf
+read  rtf card unit 10
+close unit 10
+
+open read card unit 20 name $HOME/toppar/par_all27_prot_na_atp.prm
+read para card unit 20
+close unit 20
+
+! Read PSF and Coordinates
+open read unit 10 card name @protDir/@prot.psf
+read psf  unit 10 card
+
+rewind unit 10
+
+open read unit 10 card name @protDir/@prot.crd
+read coor unit 10 card
+close unit 10
+
+!Sonra rms kontrolu yap
+!coor copy comp sele segid PROT .OR. segid ADPS .OR. segid MGAT end
+!===================
+
+! SETUP CRYSTAL (DEFINE, BUILD), IMAGE CENTERING W. MODIFIED PSF
+! WE USE THE SAME PARAMS AS IN SOLVATION
+set greaterval = 95.9012
+crystal define rhdo @greaterval @greaterval @greaterval 60. 90. 60.
+crystal build noper 0
+
+! These segments are used by CHARMMing for water and ions in bulk solvent
+define bulks sele segid bwat .or. segid pot .or. segid cl .or. segid sod .or. -
+segid cal .or. segid ces end
+
+! Set up images -- center the protein by segment and the solvent by residue
+image byseg sele .not. resname tip3 .and. .not. bulks end
+image byres sele resname tip3 .or. bulks end
+
+! SETUP NONBOND, this time we will be using electrostatics with PME, since
+! we've set up a crystal structure.
+nbond inbfrq -1 imgfrq -1 atom vatom cdie eps 1.0 -
+    elec ewald pmew fftx 96 ffty 96  fftz 96  kappa .34 spline order 6 -
+    vdw vswitch cutnb 16.0 cutim 16.0 ctofnb 12. ctonnb 10. wmin 1.0
+
+! Configure shake
+shake bonh param sele all end
+
+open unit 41 write card name @protDir/1goj-heat.res !restart file that will be written
+open unit 31 write file name @protDir/1goj-heat.dcd !trajectory file name
+
+! dynamics command
+dyna leap verlet start -                     ! use leap-frog verlet integrator
+   timestep 0.001 nstep 100000 nprint 1000 - ! run 100K steps @ 1 fs time-steps
+   iunwri 41 iuncrd 31 nsavc 100 -           ! save a restart file to unit 41, write coordinates to thetrajectory every 100 steps
+   firstt 100.0 finalt 300.0 tbath 300.0 -   ! heat from 110K to 310K (200 K) with a 310K bath
+   ihtfrq 2500 teminc 5 ieqfrq 0 -           ! heat the system 5K every 2500 steps, no equilibration needed
+   iasors 1 iasvel 1 iscvel 0 ichecw 0 -     ! assign velocities via a Gaussian distribution every IHTFRQ steps, do not check temperatures (always scale)
+   ntrfrq 500 -                              ! stop rotation and translation every 500 steps
+   iseed  11033 -                            ! pick a random seed for the velocity re-assignment
+   echeck 100.0                              ! If energy changes more than 100 kcal/mol bail out
+
+
+! write out the final coordinates
+ioform extended
+
+!Sonra yap!
+!coor orient rms  sele segid PROT .OR. segid ADPS .OR. segid MGAT end
+write coor card name @protDir/1goj-heat.crd
+* Coordinates after heating
+*
+stop
+

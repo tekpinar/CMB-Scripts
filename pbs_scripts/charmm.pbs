@@ -1,0 +1,37 @@
+#PBS -S /bin/bash
+#PBS -l nodes=2:XEON:ppn=8
+#    -l walltime=02:00:00
+#PBS -M jphafner@buffalo.edu
+#PBS -m e
+#PBS -N charmm
+#PBS -o charmm.out
+#PBS -j oe
+
+#
+# Initialize
+#
+
+cd $PBS_O_WORKDIR
+echo "working directory = "$PBS_O_WORKDIR
+
+export NN=`cat $PBS_NODEFILE | wc -l`
+echo "NN = "$NN
+
+. $MODULESHOME/init/bash
+module load charmm/c35b1r1
+module list
+
+ulimit -s unlimited
+ulimit -c 0
+ulimit -a
+
+#
+# Executable
+#
+
+echo "Starting CHARMM using $NN processor"
+
+mpiexec -np $NN $CHARMMEXE -i noe-dynamics.inp -o file.out
+
+echo "All Done!"
+#

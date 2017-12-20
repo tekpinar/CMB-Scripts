@@ -1,0 +1,90 @@
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum117 at Mon Sep 20 18:45:52 EDT 2010
+ 'vmd/v1.8.6' load complete.
+NAMDHOME = /util/namd/NAMD_2.7b2_Linux-x86_64-ibverbs
+Mon Sep 20 18:45:57 EDT 2010
+Mon Sep 20 22:48:29 EDT 2010
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum117 at Mon Sep 20 22:48:29 EDT 2010
+    for 64 processes.
+Cleaning up processes on node quantum117 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum117: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum117
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum116 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum116: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum116
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum113 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum113: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum113
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum112 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum112: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum112
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum109 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum109: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum109
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum108 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum108: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum108
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum105 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum105: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum105
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Cleaning up processes on node quantum104 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum104: /scratch/17891.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum104
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+Can't find address for this startd
+Perhaps you need to query another pool.
+Can't find address for local startd
+Perhaps you need to query another pool.
+#############################PBS EPILOGUE##############################

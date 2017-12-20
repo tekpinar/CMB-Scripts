@@ -1,0 +1,87 @@
+# Adjustable parameters
+set protein   ionized
+set protDir  /home/tekpinar/namd/proteins
+set outDir   /home/tekpinar/namd/output
+set dataDir  /home/tekpinar/toppar
+
+
+#set temperature    300
+#set outputfile     $outDir/1goj_vmd.out
+
+
+# input topology and initial structure. 
+
+structure          $protDir/$protein.psf    # Reading topology file 
+coordinates        $protDir/$protein.pdb    # Reading initial structure coordinates 
+ 
+#..force field block ........................ 
+paratypecharmm  on                   # Selecting the type of force field (CHARMM) 
+#parameters      par_all22_prot.inp   # Getting the force field parameters for proteins (a) 
+parameters      $dataDir/par_all27_prot_na_atp.prm
+exclude         scaled1-4            # Exclude/scale local (along the sequence)  
+                                     # non-bonded interactions (b) 
+1-4scaling       1.0                 # Scale factor for (i,i+3) EL interactions 
+dielectric       1.0                 # Value of the dielectric constant 
+ 
+# dealing with long-range interactions………….. 
+switching        on                  # Switch VdW interactions and partition EL into 
+                                     # local and nonlocal terms   
+switchdist       8.0                 # Distance (=a), at which the switching function is 
+                                     # first applied (c) 
+cutoff           12.0                # Distance (=b), at which VdW interactions become 
+                                     # zero and electrostatics becomes purely nonlocal 
+pairlistdist     13.5                # Maximum distance used for generating Verlet 
+                                     # lists (aka in NAMD as pair list) of atoms   
+margin           0.0                 # Extra distance used in selecting the patches (d)  
+stepspercycle    20                  # Frequency of updating Verlet list (in integration 
+                                     # steps) 
+rigidBonds       all                 # Apply SHAKE algorithm to all covalent bonds 
+                                     # involving hydrogens 
+rigidTolerance   0.00001             # Desired accuracy in maintaining SHAKEed bond 
+                                     #  lengths  
+rigidIterations  500                 # Maximum number of SHAKE iterations   
+ 
+ 
+
+# this block specifies the Ewald electrostatics......................... 
+PME             on                    # Use Particle-Mesh Ewald summation for long- 
+                                      # range electrostatics  
+PMETolerance    0.000001              # The accuracy of computing the Ewald real space 
+                                      # (direct) term 
+PMEGridSizeX    108                    # Setting the grids of points for  
+PMEGridSizeY    75                    # fast calculation of reciprocal term 
+PMEGridSizeZ    75                    # along x,y and z directions 
+ 
+minimization    on                    #  Do conjugate gradient minimization of potential 
+                                      #  energy (instead of MD run) 
+# this block specifies the output….   
+outputenergies  1000                         # Interval in integration steps  of writing energies 
+                                             # to stdout 
+outputtiming    1000                         # Interval of writing timing (basically, speed,  
+                                             # memory allocation, etc) to stdout 
+binaryoutput    no                           # Are binary files used for saving last structure? 
+outputname      $protDir/ionized_min         # The file name (without extension!), to which final 
+                                             # coordinates and velocities are to be saved 
+                                             # (appended extensions are *.coor or *.vel) 
+restartname     $protDir/ionized_min_res     # The file name (without extension), which holds 
+                                             # the restart structure and velocities 
+                                             # (appended extensions are *.coor or *.vel) 
+restartfreq     10000                        # Interval between writing out the restart 
+                                             # coordinates and velocities 
+binaryrestart   no                           # Are restart files binary? 
+DCDfile         $protDir/ionized_min.dcd     # Trajectory filename (binary file) 
+dcdfreq         1000                         # Frequency of writing structural snapshots to 
+                                             # trajectory file 
+numsteps        20000                         # Number of minimization steps 
+ 
+ 
+# this block defines periodic boundary conditions...... 
+cellBasisVector1   112.0    0.0   0.0  # Direction of the x basis vector for a unit cell  
+cellBasisVector2     0.0   75.0   0.0  # Direction of the y basis vector for a unit cell 
+cellBasisVector3     0.0    0.0  75.0  # Direction of the z basis vector for a unit cell 
+cellOrigin           0.0    0.0   0.0  # Position of the unit cell center 
+wrapWater          on                  # Are water molecules translated back to the unit 
+                                       # cell (purely cosmetic option, has no effect on 
+                                       #  simulations) 
+ 
+wrapAll on

@@ -1,0 +1,40 @@
+Attempt to set configuration "PBSRunning=True" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+#############################PBS Prologue##############################
+PBS prologue script run on host quantum2 at Tue Feb 9 15:29:22 EST 2010
+PBSTMPDIR is /scratch/8314.quantum.ccr.buffalo.edu
+ 'vmd/v1.8.6' load complete.
+working directory = /home/tekpinar/pbs
+NN = 4
+/var/spool/pbs/mom_priv/jobs/8314.quantum.ccr.buffalo.edu.SC: line 28: ./util/Modules/3.1.6/init/bash: No such file or directory
+/var/spool/pbs/mom_priv/jobs/8314.quantum.ccr.buffalo.edu.SC: line 29: module: command not found
+/var/spool/pbs/mom_priv/jobs/8314.quantum.ccr.buffalo.edu.SC: line 30: module: command not found
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 40960
+max locked memory       (kbytes, -l) 32
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 32768
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) unlimited
+cpu time               (seconds, -t) 518400
+max user processes              (-u) 40960
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+Starting CHARMM using 4 processor
+/var/spool/pbs/mom_priv/jobs/8314.quantum.ccr.buffalo.edu.SC: line 42: ./: is a directory
+All Done!
+#############################PBS EPILOGUE##############################
+PBS epilogue script run on host quantum2 at Tue Feb 9 15:29:24 EST 2010
+    for 4 processes.
+Cleaning up processes on node quantum2 for user tekpinar
+ pids to kill: 
+ cmds to kill: 
+  deleting quantum2: /scratch/8314.quantum.ccr.buffalo.edu, /scratch/tekpinar
+Turn condor back on node quantum2
+Attempt to set configuration "PBSRunning=False" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+Attempt to set configuration "PBSRunning=False" on startd quantum2.ccr.buffalo.edu <10.35.1.2:46063> failed.
+#############################PBS EPILOGUE##############################
