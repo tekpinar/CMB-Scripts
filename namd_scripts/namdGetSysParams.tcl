@@ -48,3 +48,4 @@ puts $file $zString
 puts $file $cntrString
 puts $file $crystalString
 close $file
+exit 0
