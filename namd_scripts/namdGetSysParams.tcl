@@ -20,7 +20,7 @@ Usage: \n
 
 mol new $ref_pdb
 
-set file [open out_txt w]
+set file [open $out_txt w]
 
 set all [atomselect top "all"]
 
