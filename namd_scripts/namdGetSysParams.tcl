@@ -1,9 +1,26 @@
 #!/usr/bin/env tclsh
-#Purpose: To get cell vectors and center for a protein in a water box.
+#Purpose: 
 #Author : Mustafa Tekpinar - tekpinar@buffalo.edu
 #Date   : 05/31/2011
+#Licence: LGPL v3
+if { $argc != 3 } {
+    puts "\n\nPurpose: To get cell vectors and center for a protein in a water box.
 
-set file [open "myParams.dat" w]
+Usage: \n
+         vmd -dispdev text -e namdGetSysParams.tcl -args ref.pdb out.txt\n\n
+"         
+    exit -1
+} else {
+    set ref_pdb [lindex $argv 0]
+    puts "Reference pdb file: [lindex $argv 0]"
+
+    set out_txt [lindex $argv 1]
+    puts "Output file: [lindex $argv 1]"
+}
+
+mol new $ref_pdb
+
+set file [open out_txt w]
 
 set all [atomselect top "all"]
 
