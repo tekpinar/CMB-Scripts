@@ -41,9 +41,10 @@ set zBasis [expr abs([lindex $vec0 2] - [lindex $vec1 2])]
 set xString [format "cellBasisVector1\t%.2f\t0.00\t0.00" $xBasis]
 set yString [format "cellBasisVector2\t0.00\t%.2f\t0.00" $yBasis]
 set zString [format "cellBasisVector3\t0.00\t0.00\t%.2f" $zBasis]
-
+set crystalString [format "CRYST1  %.3f\t%.3f\t%.3f  90.00  90.00  90.00 P 1           1" $xBasis $yBasis $zBasis]
 puts $file $xString
 puts $file $yString
 puts $file $zString
 puts $file $cntrString
+puts $file $crystalString
 close $file
