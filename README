@@ -1,2 +1,16 @@
+README
+
 Basically, CMB scripts are some scripts that I created to run routine chores related to MD simulations, visualization and analysis. 
 I used to use perl for a while but nowaydays, I am trying to use python for small scripts. 
+Since I am generally using VMD for visualization, you can find various scripts of VMD for 
+	1-Different kinds of RMSD
+	2-Different kinds of RMSF
+	3-Angle measurements
+	adn so on..
+
+I don't claim that they can be directly used but at least, it can give you an idea about the task at hand.
+
+The scripts are classified according to the programming language:
+	-VMD scripts, which are in tcl
+	-Python scripts (Mostly visualization scripts with matplotlib)
+	-Perl scripts
