@@ -6,7 +6,8 @@ Since I am generally using VMD for visualization, you can find various scripts o
 	1-Different kinds of RMSD
 	2-Different kinds of RMSF
 	3-Angle measurements
-	adn so on..
+	3-Normalized distance
+	and so on..
 
 I don't claim that they can be directly used but at least, it can give you an idea about the task at hand.
 
